@@ -2,6 +2,9 @@ BPF_SRC := bpf/pmu.bpf.c
 BPF_OBJ := bpf/pmu.bpf.o
 CMD := arm64-pmu-collector
 
+# Find kernel headers automatically
+KERN_HEADERS := /lib/modules/$(shell uname -r)/build/arch/x86/include/generated/uapi
+
 .PHONY: all bpf build test vet fmt ci clean
 
 all: bpf build
@@ -9,7 +12,10 @@ all: bpf build
 bpf: $(BPF_OBJ)
 
 $(BPF_OBJ): $(BPF_SRC)
-	clang -O2 -g -Wall -target bpf -c $< -o $@
+	clang -O2 -g -Wall -target bpf \
+		-I/usr/include/x86_64-linux-gnu \
+		-I/lib/modules/$(shell uname -r)/build/arch/x86/include/generated/uapi \
+		-c $< -o $@
 
 build: bpf
 	go build -o $(CMD) ./cmd/arm64-pmu-collector

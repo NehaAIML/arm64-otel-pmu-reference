@@ -11,9 +11,19 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y clang llvm libelf-dev libbpf-dev linux-headers-generic
-          # Ensure asm/types.h is available
+          # Ensure asm/types.h is available by creating a robust symlink
           sudo mkdir -p /usr/include/asm
-          sudo ln -sf /usr/include/x86_64-linux-gnu/asm/types.h /usr/include/asm/types.h || true
+          if [ ! -f /usr/include/asm/types.h ]; then
+            # Try to find it in the arch-specific folder
+            SRC=$(find /usr/include -name types.h -path "*/asm/*" | head -n 1)
+            if [ -n "$SRC" ]; then
+              sudo ln -sf "$SRC" /usr/include/asm/types.h
+              echo "Linked $SRC to /usr/include/asm/types.h"
+            else
+              echo "Warning: asm/types.h not found, attempting generic install..."
+              sudo apt-get install -y libc6-dev-amd64
+            fi
+          fi
       - name: Resolve Dependencies
         run: go mod tidy
       - name: Format Check
