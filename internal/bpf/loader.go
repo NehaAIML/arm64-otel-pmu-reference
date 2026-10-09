@@ -127,7 +127,7 @@ func NewPMUCollector(path string) (*PMUCollector, error) {
 	pfd := prog.FD()
 	for _, e := range pc.Ticks {
 		syscall.Syscall(syscall.SYS_IOCTL, uintptr(e.FD), PERF_EVENT_IOC_SET_BPF, uintptr(pfd))
-		syscall.Syscall(syscall.SYS_IOCTL, uintptr(e.FD), PERF_EVENT_IOC_ENABLE, 0, 0)
+		syscall.Syscall(syscall.SYS_IOCTL, uintptr(e.FD), PERF_EVENT_IOC_ENABLE, 0)
 	}
 	return pc, nil
 }

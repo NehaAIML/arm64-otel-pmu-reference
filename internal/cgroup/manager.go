@@ -1,7 +1,6 @@
 package cgroup
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"strconv"
