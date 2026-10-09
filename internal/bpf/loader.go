@@ -184,7 +184,7 @@ func (r *MapReader) Delete(s Snapshot) error {
 	return r.m.Delete(&key)
 }
 
-type Snapshot struct {
+type Snapshot struct { CPU uint32; CgroupID uint64; Cycles, CyclesEn, CyclesRun, Instr, InstrEn, InstrRun, Miss, MissEn, MissRun uint64 }
 	CPU, CgroupID                                                                uint32
 	Cycles, CyclesEn, CyclesRun, Instr, InstrEn, InstrRun, Miss, MissEn, MissRun uint64
 }

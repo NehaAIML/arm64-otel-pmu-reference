@@ -17,7 +17,7 @@ type Config struct {
 	Endpoint, CgroupRoot         string
 	SkipCgroupValidation         bool
 }
-type Snapshot struct {
+type Snapshot struct { CPU uint32; CgroupID uint64; Cycles, CyclesEn, CyclesRun, Instr, InstrEn, InstrRun, Miss, MissEn, MissRun uint64 }
 	CPU                                                                          uint32
 	CgroupID                                                                     uint64
 	Cycles, CyclesEn, CyclesRun, Instr, InstrEn, InstrRun, Miss, MissEn, MissRun uint64
