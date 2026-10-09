@@ -1,22 +1,28 @@
 package collector
 
 import (
-    "testing"
-
-    "github.com/NehaAIML/arm64-otel-pmu-reference/internal/accum"
+	"context"
+	"github.com/NehaAIML/arm64-otel-pmu-reference/internal/otlp"
+	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
-func TestCollector_PipelineDeterministic(t *testing.T) {
-    acc := accum.NewAccumulator()
-    key := "0:1234:arm64.pmu.cycles"
+type fakeReader struct{ snaps []Snapshot }
 
-    d1 := acc.Update(key, accum.Sample{Counter: 1000, Enabled: 5000, Running: 5000})
-    if d1.Value != 0 {
-        t.Fatalf("expected initial delta 0, got %d", d1.Value)
-    }
-
-    d2 := acc.Update(key, accum.Sample{Counter: 2000, Enabled: 6000, Running: 6000})
-    if d2.Value != 1000 {
-        t.Errorf("expected arm64.pmu.cycles delta 1000, got %d", d2.Value)
-    }
+func (f *fakeReader) ForEach(fn func(Snapshot) error) error {
+	for _, s := range f.snaps {
+		fn(s)
+	}
+	return nil
+}
+func (f *fakeReader) Delete(s Snapshot) error { return nil }
+func TestCollectorPipeline(t *testing.T) {
+	fr := &fakeReader{snaps: []Snapshot{{CPU: 0, CgroupID: 42, Cycles: 1000, CyclesEn: 1000, CyclesRun: 1000}}}
+	exp := otlp.NewExporter("localhost:4317", true)
+	c := New(Config{SkipCgroupValidation: true}, fr, exp)
+	c.pollOnce()
+	fr.snaps[0].Cycles = 2000
+	c.pollOnce()
+	c.exportOnce(context.Background())
+	assert.NotEmpty(t, exp.CollectPoints())
 }
