@@ -6,6 +6,7 @@ import (
 	"github.com/NehaAIML/arm64-otel-pmu-reference/internal/accum"
 	"github.com/NehaAIML/arm64-otel-pmu-reference/internal/cgroup"
 	"github.com/NehaAIML/arm64-otel-pmu-reference/internal/otlp"
+	"github.com/NehaAIML/arm64-otel-pmu-reference/internal/shared"
 	"strconv"
 	"strings"
 	"sync"
@@ -16,12 +17,6 @@ type Config struct {
 	PollInterval, ExportInterval time.Duration
 	Endpoint, CgroupRoot         string
 	SkipCgroupValidation         bool
-}
-
-type Snapshot struct {
-	CPU                                                                          uint32
-	CgroupID                                                                     uint64
-	Cycles, CyclesEn, CyclesRun, Instr, InstrEn, InstrRun, Miss, MissEn, MissRun uint64
 }
 
 type MapReader interface {
@@ -71,7 +66,7 @@ func (c *Collector) pollOnce() {
 	live := map[string]bool{}
 	validIDs, _ := c.cg.Enumerate()
 	isStrict := !c.cfg.SkipCgroupValidation && len(validIDs) > 0
-	c.reader.ForEach(func(s Snapshot) error {
+	c.reader.ForEach(func(s shared.Snapshot) error {
 		idStr := strconv.FormatUint(s.CgroupID, 10)
 		if isStrict {
 			if _, ok := validIDs[idStr]; !ok {

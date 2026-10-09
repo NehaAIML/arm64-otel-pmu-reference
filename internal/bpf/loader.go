@@ -9,6 +9,7 @@ import (
 	"syscall"
 	"unsafe"
 
+	"github.com/NehaAIML/arm64-otel-pmu-reference/internal/shared"
 	"github.com/cilium/ebpf"
 	"github.com/cilium/ebpf/rlimit"
 )
@@ -160,13 +161,7 @@ func NewMapReader(m *ebpf.Map, ncpu int) *MapReader {
 	return &MapReader{m: m, keys: keys}
 }
 
-type Snapshot struct {
-	CPU                                                                          uint32
-	CgroupID                                                                     uint64
-	Cycles, CyclesEn, CyclesRun, Instr, InstrEn, InstrRun, Miss, MissEn, MissRun uint64
-}
-
-func (r *MapReader) ForEach(fn func(Snapshot) error) error {
+func (r *MapReader) ForEach(fn func(shared.Snapshot) error) error {
 	var key struct {
 		CPU      uint32
 		CgroupID uint64
@@ -177,14 +172,14 @@ func (r *MapReader) ForEach(fn func(Snapshot) error) error {
 		if err := r.m.Lookup(&key, &val); err != nil {
 			continue
 		}
-		fn(Snapshot{CPU: key.CPU, CgroupID: key.CgroupID,
+		fn(shared.Snapshot{CPU: key.CPU, CgroupID: key.CgroupID,
 			Cycles: binary.NativeEndian.Uint64(val[0:8]), CyclesEn: binary.NativeEndian.Uint64(val[8:16]), CyclesRun: binary.NativeEndian.Uint64(val[16:24]),
 			Instr: binary.NativeEndian.Uint64(val[24:32]), InstrEn: binary.NativeEndian.Uint64(val[32:40]), InstrRun: binary.NativeEndian.Uint64(val[40:48]),
 			Miss: binary.NativeEndian.Uint64(val[48:56]), MissEn: binary.NativeEndian.Uint64(val[56:64]), MissRun: binary.NativeEndian.Uint64(val[64:72])})
 	}
 	return nil
 }
-func (r *MapReader) Delete(s Snapshot) error {
+func (r *MapReader) Delete(s shared.Snapshot) error {
 	key := struct {
 		CPU      uint32
 		CgroupID uint64
