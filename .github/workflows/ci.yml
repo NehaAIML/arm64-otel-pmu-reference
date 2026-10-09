@@ -10,7 +10,11 @@ jobs:
       - name: Install Build Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y clang llvm libelf-dev libbpf-dev linux-headers-generic
+          sudo apt-get install -y clang llvm libelf-dev libbpf-dev linux-headers-$(uname -r)
+          # Fix for missing asm/types.h in some Ubuntu runner versions
+          if [ ! -f /usr/include/asm/types.h ]; then
+            sudo ln -s /usr/include/x86_64-linux-gnu/asm/types.h /usr/include/asm/types.h || true
+          fi
       - name: Resolve Dependencies
         run: |
           go mod download
