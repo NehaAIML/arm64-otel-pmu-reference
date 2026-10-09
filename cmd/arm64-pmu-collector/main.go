@@ -14,7 +14,6 @@ import (
 	"github.com/NehaAIML/arm64-otel-pmu-reference/internal/bpf"
 	"github.com/NehaAIML/arm64-otel-pmu-reference/internal/collector"
 	"github.com/NehaAIML/arm64-otel-pmu-reference/internal/otlp"
-	"github.com/cilium/ebpf"
 )
 
 func main() {
