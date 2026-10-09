@@ -3,14 +3,15 @@ package collector
 import (
 	"context"
 	"fmt"
-	"github.com/NehaAIML/arm64-otel-pmu-reference/internal/accum"
-	"github.com/NehaAIML/arm64-otel-pmu-reference/internal/cgroup"
-	"github.com/NehaAIML/arm64-otel-pmu-reference/internal/otlp"
-	"github.com/NehaAIML/arm64-otel-pmu-reference/internal/shared"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/NehaAIML/arm64-otel-pmu-reference/internal/accum"
+	"github.com/NehaAIML/arm64-otel-pmu-reference/internal/cgroup"
+	"github.com/NehaAIML/arm64-otel-pmu-reference/internal/otlp"
+	"github.com/NehaAIML/arm64-otel-pmu-reference/internal/shared"
 )
 
 type Config struct {
@@ -19,22 +20,17 @@ type Config struct {
 	SkipCgroupValidation         bool
 }
 
-type MapReader interface {
-	ForEach(func(Snapshot) error) error
-	Delete(Snapshot) error
-}
-
 type Collector struct {
 	cfg    Config
 	acc    *accum.Accumulator
 	cg     *cgroup.Manager
-	reader MapReader
+	reader shared.MapReader
 	exp    *otlp.Exporter
 	stopCh chan struct{}
 	wg     sync.WaitGroup
 }
 
-func New(cfg Config, reader MapReader, exp *otlp.Exporter) *Collector {
+func New(cfg Config, reader shared.MapReader, exp *otlp.Exporter) *Collector {
 	return &Collector{cfg: cfg, acc: accum.NewAccumulator(), cg: cgroup.NewManager(cfg.CgroupRoot), reader: reader, exp: exp, stopCh: make(chan struct{})}
 }
 
