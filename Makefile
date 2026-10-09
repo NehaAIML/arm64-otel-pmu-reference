@@ -2,7 +2,7 @@ BPF_SRC := bpf/pmu.bpf.c
 BPF_OBJ := bpf/pmu.bpf.o
 CMD := arm64-pmu-collector
 
-.PHONY: all bpf build test vet fmt lint ci clean
+.PHONY: all bpf build test vet fmt ci clean
 
 all: bpf build
 
@@ -22,9 +22,6 @@ vet:
 
 fmt:
 	gofmt -l -w ./cmd ./internal
-
-lint: fmt vet
-	@command -v golangci-lint >/dev/null && golangci-lint run ./... || echo "install golangci-lint"
 
 ci: fmt vet test
 	GOOS=linux GOARCH=arm64 go build -o /dev/null ./cmd/arm64-pmu-collector

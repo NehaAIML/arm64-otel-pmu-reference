@@ -10,15 +10,12 @@ jobs:
       - name: Install Build Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y clang llvm libelf-dev libbpf-dev linux-headers-$(uname -r)
-          # Fix for missing asm/types.h in some Ubuntu runner versions
-          if [ ! -f /usr/include/asm/types.h ]; then
-            sudo ln -s /usr/include/x86_64-linux-gnu/asm/types.h /usr/include/asm/types.h || true
-          fi
+          sudo apt-get install -y clang llvm libelf-dev libbpf-dev linux-headers-generic
+          # Ensure asm/types.h is available
+          sudo mkdir -p /usr/include/asm
+          sudo ln -sf /usr/include/x86_64-linux-gnu/asm/types.h /usr/include/asm/types.h || true
       - name: Resolve Dependencies
-        run: |
-          go mod download
-          go mod tidy
+        run: go mod tidy
       - name: Format Check
         run: test -z "$(gofmt -l ./cmd ./internal)" || (gofmt -l ./cmd ./internal; exit 1)
       - name: Vet
@@ -26,6 +23,8 @@ jobs:
       - name: Unit Tests
         run: go test -race ./internal/...
       - name: Cross-Compile ARM64
-        run: GOOS=linux GOARCH=arm64 go build ./cmd/arm64-pmu-collector
+        run: GOOS=linux GOARCH=arm64 go build -o arm64-pmu-collector ./cmd/arm64-pmu-collector
       - name: Build eBPF
         run: make bpf/pmu.bpf.o
+      - name: Verify Binary
+        run: file arm64-pmu-collector | grep "ARM aarch64"
